@@ -390,8 +390,7 @@ function toggleDate(el) {
 
 function buildTimeslots() {
   document.getElementById('timeslot-grid').innerHTML = TIMESLOTS.map(t =>
-    `<div class="act-item" data-id="${t.id}" onclick="toggleTimeslot(this)">
-      <span style="font-size:18px">${t.emoji}</span><span>${t.label}</span></div>`
+    '<div class="act-item" data-id="' + t.id + '" onclick="toggleTimeslot(this)"><span style="font-size:18px">' + t.emoji + '</span><span>' + t.label + '</span></div>'
   ).join('');
 }
 function toggleTimeslot(el) {
