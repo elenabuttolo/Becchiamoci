@@ -217,14 +217,16 @@ const SUPABASE_KEY = 'sb_publishable_EbeH7M0Yz_osQIqmKcHnww_v1Sxu2xY';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ──────────────────────────────────────────────────────────────────────────
 
-const TIMESLOTS = [
-  {id:"mattina",label:"Mattina",emoji:"🌅"},
-  {id:"pranzo",label:"Pranzo",emoji:"🍝"},
-  {id:"pomeriggio",label:"Pomeriggio",emoji:"☀️"},
-  {id:"aperitivo",label:"Aperitivo",emoji:"🍸"},
-  {id:"cena",label:"Cena",emoji:"🍽️"},
-  {id:"dopocena",label:"Dopo cena",emoji:"🌙"},
+
+  const TIMESLOTS = [
+  {id:'mattina',label:'Mattina',emoji:'🌅'},
+  {id:'pranzo',label:'Pranzo',emoji:'🍝'},
+  {id:'pomeriggio',label:'Pomeriggio',emoji:'☀️'},
+  {id:'aperitivo',label:'Aperitivo',emoji:'🍸'},
+  {id:'cena',label:'Cena',emoji:'🍽️'},
+  {id:'dopocena',label:'Dopo cena',emoji:'🌙'},
 ];
+  
 const ACTIVITIES = [
   {id:'cena',label:'Cena fuori',emoji:'🍽️'},
   {id:'aperitivo',label:'Aperitivo',emoji:'🍸'},
@@ -385,6 +387,20 @@ function toggleDate(el) {
   document.getElementById('date-count').textContent = state.selectedDates.length+' '+(state.selectedDates.length===1?'data':'date')+' selezionate';
 }
 
+
+function buildTimeslots() {
+  document.getElementById('timeslot-grid').innerHTML = TIMESLOTS.map(t =>
+    `<div class="act-item" data-id="${t.id}" onclick="toggleTimeslot(this)">
+      <span style="font-size:18px">${t.emoji}</span><span>${t.label}</span></div>`
+  ).join('');
+}
+function toggleTimeslot(el) {
+  const id = el.dataset.id;
+  const idx = state.selectedTimeslots.indexOf(id);
+  if (idx>-1) state.selectedTimeslots.splice(idx,1); else state.selectedTimeslots.push(id);
+  el.classList.toggle('sel');
+}
+  
 function buildActivities() {
   document.getElementById('act-grid').innerHTML = ACTIVITIES.map(a =>
     `<div class="act-item" data-id="${a.id}" onclick="toggleAct(this)">
@@ -403,17 +419,6 @@ function buildPlaces() {
   ).join('');
 }
 
-function buildTimeslots() {
-  document.getElementById("timeslot-grid").innerHTML = TIMESLOTS.map(t =>
-    `<div class="act-item" data-id="" onclick="toggleTimeslot(this)">
-      <span style="font-size:18px"></span><span></span></div>`
-  ).join("");
-}
-function toggleTimeslot(el) {
-  const id = el.dataset.id; const idx = state.selectedTimeslots.indexOf(id);
-  if (idx>-1) state.selectedTimeslots.splice(idx,1); else state.selectedTimeslots.push(id);
-  el.classList.toggle("sel");
-}
 
 function togglePlace(el) {
   const p = el.dataset.place; const idx = state.selectedPlaces.indexOf(p);
