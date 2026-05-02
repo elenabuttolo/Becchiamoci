@@ -482,8 +482,25 @@ function renderView() {
   const commonActs = Object.entries(actCount).filter(([,c])=>c>=Math.ceil(n/2)).sort((a,b)=>b[1]-a[1]);
   const commonPlaces = Object.entries(placeCount).filter(([,c])=>c>=Math.ceil(n/2)).sort((a,b)=>b[1]-a[1]);
   const fmtDate = d => new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
+  
+let html = '<p class="section-ttl">✦ Risultati</p>';
 
-  let html = '<p class="section-ttl">✦ Risultati</p>';
+// Riassunto top match
+const topDate = commonDates.length > 0 ? commonDates[0] : null;
+const topAct = commonActs.length > 0 ? ACTIVITIES.find(function(a){return a.id===commonActs[0][0]}) : null;
+const topPlace = commonPlaces.length > 0 ? commonPlaces[0][0] : null;
+const topTs = commonTs ? (commonTs.length > 0 ? TIMESLOTS.find(function(t){return t.id===commonTs[0][0]}) : null) : null;
+
+if (topDate || topAct || topPlace || topTs) {
+  const fmtTop = function(d){ return new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}); };
+  html += '<div style="background:linear-gradient(135deg,rgba(201,245,100,0.15),rgba(212,168,255,0.1));border:1.5px solid rgba(201,245,100,0.4);border-radius:16px;padding:20px;margin-bottom:16px">';
+  html += '<p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:800;color:#C9F564;margin-bottom:12px">🐔 Il momento perfetto</p>';
+  if (topDate) html += '<p style="font-size:16px;font-weight:800;color:#F3EEFF;margin-bottom:6px">📅 ' + fmtTop(topDate) + '</p>';
+  if (topTs) html += '<p style="font-size:15px;font-weight:700;color:#F3EEFF;margin-bottom:6px">' + topTs.emoji + ' ' + topTs.label + '</p>';
+  if (topAct) html += '<p style="font-size:15px;font-weight:700;color:#F3EEFF;margin-bottom:6px">' + topAct.emoji + ' ' + topAct.label + '</p>';
+  if (topPlace) html += '<p style="font-size:15px;font-weight:700;color:#F3EEFF">📍 ' + topPlace + '</p>';
+  html += '</div>';
+}
   html += `<div class="match-card"><p class="match-title">📅 Date in comune (${commonDates.length})</p>`;
   if (commonDates.length) commonDates.slice(0,6).forEach(d => { html+=`<div class="match-row"><span class="match-lbl">${fmtDate(d)}</span><span class="badge full">tutti liberi ✓</span></div>`; });
   else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessuna data in comune. Aggiungete più giorni!</p>';
