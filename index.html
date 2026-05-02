@@ -156,7 +156,7 @@
   </div>
 
   <div id="step2" class="hidden">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Cosa ti va di fare? 🎯</h2>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Cosa ti va di fare?✨</h2>
     <p class="sub">Seleziona una o più attività</p>
     <div class="card"><div class="act-grid" id="act-grid"></div></div>
     <button class="btn" onclick="goStep(3)">Continua → Dove</button>
@@ -164,7 +164,7 @@
   </div>
 
   <div id="step3" class="hidden">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Dove ti va di andare? 📍</h2>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Dove ti va di andare?🌿</h2>
     <p class="sub">Seleziona le zone che preferisci</p>
     <div class="card"><div class="place-wrap" id="place-wrap"></div></div>
     <button class="btn" onclick="goStep(4)">Continua → Orari</button>
@@ -239,8 +239,9 @@ const ACTIVITIES = [
   {id:'lago',label:'Gita al lago',emoji:'🏞️'},
   {id:'mare',label:'Gita al mare',emoji:'🏖️'},
   {id:'parco',label:'Parco',emoji:'🌲'},
+  {id:'bowling',label:'Bowling o bocce',emoji:'🎳'},
 ];
-const PLACES = ['Milano Nord','Milano Centro', 'Busto Arsizio & Dintorni','Lago Maggiore','Lago di Como', 'Zoagli','Genova', 'Propongo io!'];
+const PLACES = ['Milano Nord','Milano Centro', 'Casa mia?🏠', 'Busto Arsizio & Dintorni','Lago Maggiore','Lago di Como', 'Zoagli','Genova', 'Propongo io!'];
 const AVATAR_COLORS = ['#C9F564','#D4A8FF','#FF8B94','#4ECDC4','#FFB347','#A8E6CF','#FF6B9D','#B8B8FF','#FFDAC1','#C7CEEA'];
 
 let state = { eventId:null, eventName:'', eventCode:'', participants:[], currentUser:null, selectedDates:[], selectedActivities:[], selectedPlaces:[], selectedTimeslots:[] };
