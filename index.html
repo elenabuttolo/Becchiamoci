@@ -498,7 +498,7 @@ function renderView() {
   html += '</div>';
   html += '<div class="match-card"><p class="match-title">🕐 Orari preferiti</p>';
   const tsCount={};
-  state.participants.forEach(p => { (p.timeslots||[]).forEach(t => { tsCount[t]=(tsCount[t]||0)+1; }); });
+  state.participants.forEach(p => (Array.isArray(p.timeslots) ? p.timeslots : []).forEach(t => { tsCount[t]=(tsCount[t]||0)+1; }); });
   const commonTs = Object.entries(tsCount).filter(([,c])=>c>=Math.ceil(n/2)).sort((a,b)=>b[1]-a[1]);
   if (commonTs.length) commonTs.forEach(([id,count]) => { const t=TIMESLOTS.find(x=>x.id===id); html+=`<div class="match-row"><span class="match-lbl">${t.emoji} ${t.label}</span><span class="badge${count===n?' full':''}">${count}/${n}</span></div>`; });
   else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessun orario in comune.</p>';
