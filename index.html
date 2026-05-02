@@ -345,25 +345,35 @@ function goStep(n) {
 
 function buildCalendar() {
   const wrap = document.getElementById('cal-wrap');
-  const days = []; const today = new Date(); today.setHours(0,0,0,0);
-  for (let i=1;i<=21;i++) { const d=new Date(today); d.setDate(today.getDate()+i); days.push(d); }
-  const weeks = []; for (let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const WD = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
-  let html = '<div class="day-grid">';
-  WD.forEach(l => html+=`<div class="day-hdr">${l}</div>`);
-  html += '</div>';
-  weeks.forEach(week => {
-    html += '<div class="day-grid" style="margin-bottom:4px">';
-    week.forEach(day => {
-      const key = day.toISOString().split('T')[0];
-      const dow = day.getDay(); const wknd = dow===0||dow===6;
-      const lbl = ['D','L','M','M','G','V','S'][dow];
-      html += `<div class="day-cell${wknd?' wknd':''}" data-key="${key}" onclick="toggleDate(this)">
-        <span class="dc-lbl">${lbl}</span><span class="dc-num">${day.getDate()}</span></div>`;
-    });
+  let html = '';
+  for (let m = 0; m < 2; m++) {
+    const ref = new Date(today.getFullYear(), today.getMonth() + m, 1);
+    const year = ref.getFullYear();
+    const month = ref.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let startDow = new Date(year, month, 1).getDay();
+    startDow = (startDow + 6) % 7;
+    html += `<p style="font-size:13px;font-weight:800;color:#F3EEFF;margin-bottom:8px${m>0?';margin-top:20px':''}">${MONTHS[month]} ${year}</p>`;
+    html += '<div class="day-grid">';
+    WD.forEach(l => html += `<div class="day-hdr">${l}</div>`);
+    html += '</div><div class="day-grid">';
+    for (let e = 0; e < startDow; e++) html += '<div></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      if (date < today) {
+        html += `<div class="day-cell" style="opacity:0.2;cursor:default"><span class="dc-num">${d}</span></div>`;
+      } else {
+        const key = date.toISOString().split('T')[0];
+        const dow = date.getDay(); const wknd = dow===0||dow===6;
+        html += `<div class="day-cell${wknd?' wknd':''}" data-key="${key}" onclick="toggleDate(this)"><span class="dc-num">${d}</span></div>`;
+      }
+    }
     html += '</div>';
-  });
-  html += `<p style="font-size:11px;color:rgba(243,238,255,.4);margin-top:7px;font-family:monospace" id="date-count">0 date selezionate</p>`;
+  }
+  html += `<p style="font-size:11px;color:rgba(243,238,255,.4);margin-top:10px;font-family:monospace" id="date-count">0 date selezionate</p>`;
   wrap.innerHTML = html;
 }
 
