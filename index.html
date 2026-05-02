@@ -243,7 +243,7 @@ const ACTIVITIES = [
   {id:'parco',label:'Parco/Picnic',emoji:'🌲'},
   {id:'bowling',label:'Bowling o bocce',emoji:'🎳'},
 ];
-const PLACES = ['Milano Nord','Milano Centro', 'Casa mia?🏠', 'Busto Arsizio & Dintorni','Lago Maggiore','Lago di Como', 'Zoagli','Genova', 'Propongo io!'];
+const PLACES = ['Navigli','Brera','Isola','Porta Romana','Moscova','Tortona','Porta Venezia','Nolo','Ticinese','Lambrate','Città Studi','Loreto','Bergamo','Lago di Como', 'Casa mia?🏠', 'Busto Arsizio & Dintorni','Lago Maggiore','Lago di Como', 'Zoagli','Genova', 'Propongo io!'];
 const AVATAR_COLORS = ['#C9F564','#D4A8FF','#FF8B94','#4ECDC4','#FFB347','#A8E6CF','#FF6B9D','#B8B8FF','#FFDAC1','#C7CEEA'];
 
 let state = { eventId:null, eventName:'', eventCode:'', participants:[], currentUser:null, selectedDates:[], selectedActivities:[], selectedPlaces:[], selectedTimeslots:[] };
@@ -351,7 +351,7 @@ function buildCalendar() {
   const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const WD = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
   let html = '';
-  for (let m = 0; m < 2; m++) {
+  for (let m = 0; m < 1; m++) {
     const ref = new Date(today.getFullYear(), today.getMonth() + m, 1);
     const year = ref.getFullYear();
     const month = ref.getMonth();
