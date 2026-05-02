@@ -103,8 +103,8 @@
   <p class="sub">Crea un evento, condividi il codice agli amici e trovate insieme il momento perfetto.</p>
   <div class="card">
     <p class="lbl">Crea un nuovo evento</p>
-    <input type="text" id="event-input" placeholder="es. Weekend al lago 🏞️" onkeydown="if(event.key==='Enter')createEvent()">
-    <button class="btn" onclick="createEvent()">Crea evento →</button>
+    <input type="text" id="event-input" placeholder="es. Weekend al lago 🏞️" onkeydown="if(event.key==='Enter')creaEvento()">
+    <button class="btn" onclick="creaEvento()">Crea evento →</button>
   </div>
   <div class="card" style="margin-top:8px">
     <p class="lbl">Hai già un codice?</p>
@@ -247,7 +247,7 @@ function generateCode() {
   return Math.random().toString(36).substring(2,8).toUpperCase();
 }
 
-async function createEvent() {
+async function creaEvento() {
   const name = document.getElementById('event-input').value.trim();
   if (!name) return;
   const code = generateCode();
