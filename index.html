@@ -18,7 +18,7 @@
     .cb{animation:fb 4.8s ease-in-out infinite}
     .cc{animation:fc 6.1s ease-in-out infinite}
     header{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.12)}
-    .logo{font-size:20px;font-weight:800;cursor:pointer;color:#F3EEFF;text-decoration:none;display:flex;align-items:center;gap:6px}
+    .logo{font-size:20px;font-weight:800;cursor:pointer;color:#F3EEFF;display:flex;align-items:center;gap:6px}
     .logo span{color:#C9F564}
     .pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;color:rgba(243,238,255,0.5)}
     .pill-btn{cursor:pointer}
@@ -43,9 +43,17 @@
     .day-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);transition:all .12s;user-select:none}
     .day-cell.wknd{background:rgba(212,168,255,.1)}
     .day-cell.sel{background:#C9F564;border:none}
-    .day-cell.sel .dc-lbl,.day-cell.sel .dc-num{color:#1A0035}
-    .dc-lbl{font-size:8px;color:rgba(243,238,255,.4);font-weight:700}
-    .dc-num{font-size:14px;font-weight:800;color:#F3EEFF}
+    .day-cell.sel .dc-num{color:#1A0035}
+    .day-cell.past{opacity:0.18;cursor:default}
+    .dc-num{font-size:13px;font-weight:800;color:#F3EEFF}
+    .res-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s;user-select:none}
+    .res-day.empty{opacity:0;pointer-events:none}
+    .res-day.past{opacity:0.15;pointer-events:none}
+    .res-day.has-votes{border-color:rgba(201,245,100,.4);background:rgba(201,245,100,.08)}
+    .res-day.all-votes{background:#C9F564;border:none}
+    .res-day.all-votes .rd-num,.res-day.all-votes .rd-count{color:#1A0035}
+    .rd-num{font-size:12px;font-weight:800;color:#F3EEFF}
+    .rd-count{font-size:9px;font-weight:700;color:#C9F564;margin-top:1px}
     .act-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
     .act-item{padding:11px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(243,238,255,.5);transition:all .12s;user-select:none}
     .act-item.sel{border-color:#C9F564;background:rgba(201,245,100,.1);color:#C9F564;font-weight:700}
@@ -67,19 +75,25 @@
     .info-box h3{font-size:14px;font-weight:800;margin-bottom:5px}
     .info-box p{font-size:13px;color:rgba(243,238,255,.5);line-height:1.6}
     .hidden{display:none}
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#C9F564;color:#1A0035;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;padding:12px 24px;border-radius:100px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#C9F564;color:#1A0035;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;padding:12px 24px;border-radius:100px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
     .toast.show{opacity:1}
-    .loading{text-align:center;padding:30px;color:rgba(243,238,255,.4);font-size:14px}
     .event-code{font-family:monospace;font-size:28px;letter-spacing:.15em;color:#C9F564;font-weight:800;margin:8px 0}
     .join-code-input{text-transform:uppercase;letter-spacing:.15em;font-family:monospace;font-size:20px;text-align:center}
+    .legend{display:flex;gap:12px;margin-top:10px;font-size:11px;color:rgba(243,238,255,.4);align-items:center;flex-wrap:wrap}
+    .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
   </style>
 </head>
 <body>
-
 <div class="chicken-bg">
-
+  <span class="ch ca" style="top:8%;left:4%">🐔</span>
+  <span class="ch cb" style="top:15%;right:6%">🐓</span>
+  <span class="ch cc" style="top:42%;left:2%">🐔</span>
+  <span class="ch ca" style="top:60%;right:4%">🐔</span>
+  <span class="ch cb" style="bottom:14%;left:15%">🐣</span>
+  <span class="ch cc" style="bottom:24%;right:18%">🐓</span>
+  <span class="ch ca" style="top:75%;left:45%">🥚</span>
+  <span class="ch cb" style="top:30%;left:50%">🐔</span>
 </div>
-
 <header>
   <div class="logo" onclick="goHome()">🐓 <span>Becchiamoci</span></div>
   <div style="display:flex;gap:8px;align-items:center">
@@ -87,58 +101,49 @@
     <div class="pill pill-btn" onclick="showScreen('info')">come funziona?</div>
   </div>
 </header>
-
 <main>
-
-<!-- HOME -->
 <div id="screen-home">
   <h1>Quando ci<br><span class="acc">becchiamo</span>? 🐓</h1>
   <p class="sub">Crea un evento, condividi il codice agli altri polli e trovate insieme il momento perfetto.</p>
   <div class="card">
     <p class="lbl">Crea un nuovo evento</p>
-    <input type="text" id="event-input" placeholder="es. Weekend al lago 🏞️" onkeydown="if(event.key==='Enter')creaEvento()">
-    <button class="btn" onclick="creaEvento()">Crea evento →</button>
+    <input type="text" id="event-input" placeholder="es. Weekend al lago" onkeydown="if(event.key==='Enter')creaEvento()">
+    <button class="btn" onclick="creaEvento()">Crea evento</button>
   </div>
   <div class="card" style="margin-top:8px">
-    <p class="lbl">Hai già un codice?</p>
+    <p class="lbl">Hai gia un codice?</p>
     <input type="text" id="code-input" placeholder="CODICE" class="join-code-input" maxlength="6" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinByCode()">
-    <button class="btn-sec" style="margin-top:0" onclick="joinByCode()">Unisciti all'evento →</button>
+    <button class="btn-sec" style="margin-top:0" onclick="joinByCode()">Unisciti all evento</button>
   </div>
 </div>
-
-<!-- LOBBY -->
 <div id="screen-lobby" class="hidden">
   <h1 id="lobby-title" style="font-size:28px;margin-bottom:8px"></h1>
   <p class="sub" id="lobby-sub"></p>
   <div class="card" style="text-align:center">
-    <p class="lbl">Codice evento — condividilo agli amici</p>
+    <p class="lbl">Codice evento</p>
     <div class="event-code" id="lobby-code"></div>
-    <button class="btn-sec" style="margin-top:4px;font-size:13px" onclick="copyCode()">📋 Copia codice</button>
+    <button class="btn-sec" style="margin-top:4px;font-size:13px" onclick="copyCode()">Copia codice</button>
   </div>
-  <button class="btn" onclick="showScreen('join')">Aggiungi la mia disponibilità</button>
-  <button class="btn-sec" id="btn-results" style="display:none" onclick="loadAndShowResults()">Vedi i risultati →</button>
-  <button class="btn-sec" style="margin-top:14px;font-size:12px;color:rgba(243,238,255,0.2);border-color:rgba(255,255,255,0.06)" onclick="newEvent()">+ Nuovo evento</button>
+  <button class="btn" onclick="showScreen('join')">Aggiungi la mia disponibilita</button>
+  <button class="btn-sec" id="btn-results" style="display:none" onclick="loadAndShowResults()">Vedi i risultati</button>
+  <button class="btn-sec" style="margin-top:14px;font-size:12px;color:rgba(243,238,255,0.2);border-color:rgba(255,255,255,0.06)" onclick="newEvent()">Nuovo evento</button>
 </div>
-
-<!-- JOIN -->
 <div id="screen-join" class="hidden">
   <p class="lbl" style="margin-bottom:14px">Chi sei?</p>
   <h1 style="font-size:28px;margin-bottom:8px">Inserisci il tuo nome</h1>
-  <p class="sub">Così gli altri polli sapranno chi ha risposto.</p>
+  <p class="sub">Cosi gli altri polli sapranno chi ha risposto.</p>
   <div class="card">
     <input type="text" id="user-input" placeholder="Il tuo nome..." onkeydown="if(event.key==='Enter')startFill()">
-    <button class="btn" onclick="startFill()">Continua →</button>
-    <button class="btn-sec" onclick="showScreen('lobby')">← Indietro</button>
+    <button class="btn" onclick="startFill()">Continua</button>
+    <button class="btn-sec" onclick="showScreen('lobby')">Indietro</button>
   </div>
 </div>
-
-<!-- FILL -->
 <div id="screen-fill" class="hidden">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
     <div class="avatar" id="fill-avatar"></div>
     <div>
       <p style="font-size:16px;font-weight:800" id="fill-name"></p>
-      <p style="font-size:12px;color:rgba(243,238,255,0.4)" id="fill-step-lbl">step 1 di 3</p>
+      <p style="font-size:12px;color:rgba(243,238,255,0.4)" id="fill-step-lbl">step 1 di 4</p>
     </div>
   </div>
   <div class="step-bar">
@@ -147,40 +152,34 @@
     <div class="step-dot" id="dot3"></div>
     <div class="step-dot" id="dot4"></div>
   </div>
-
   <div id="step1">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Quando sei libero? 📅</h2>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Quando sei libero?</h2>
     <p class="sub">Tocca i giorni in cui sei disponibile</p>
     <div class="card" id="cal-wrap"></div>
-    <button class="btn" onclick="goStep(2)">Continua → Cosa fare</button>
+    <button class="btn" onclick="goStep(2)">Continua</button>
   </div>
-
   <div id="step2" class="hidden">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Cosa ti va di fare?✨</h2>
-    <p class="sub">Seleziona una o più attività</p>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Cosa ti va di fare?</h2>
+    <p class="sub">Seleziona una o piu attivita</p>
     <div class="card"><div class="act-grid" id="act-grid"></div></div>
-    <button class="btn" onclick="goStep(3)">Continua → Dove</button>
-    <button class="btn-sec" onclick="goStep(1)">← Date</button>
+    <button class="btn" onclick="goStep(3)">Continua</button>
+    <button class="btn-sec" onclick="goStep(1)">Indietro</button>
   </div>
-
   <div id="step3" class="hidden">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Dove ti va di andare?🌿</h2>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Dove ti va di andare?</h2>
     <p class="sub">Seleziona le zone che preferisci</p>
     <div class="card"><div class="place-wrap" id="place-wrap"></div></div>
-    <button class="btn" onclick="goStep(4)">Continua → Orari</button>
-    <button class="btn-sec" onclick="goStep(2)">← Attività</button>
+    <button class="btn" onclick="goStep(4)">Continua</button>
+    <button class="btn-sec" onclick="goStep(2)">Indietro</button>
   </div>
-
   <div id="step4" class="hidden">
-    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Che orari preferisci? 🕐</h2>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:5px">Che orari preferisci?</h2>
     <p class="sub">Seleziona le fasce orarie in cui sei disponibile</p>
     <div class="card"><div class="act-grid" id="timeslot-grid"></div></div>
-    <button class="btn" id="save-btn" onclick="saveResponse()">✓ Salva la mia risposta</button>
-    <button class="btn-sec" onclick="goStep(3)">← Luoghi</button>
+    <button class="btn" id="save-btn" onclick="saveResponse()">Salva la mia risposta</button>
+    <button class="btn-sec" onclick="goStep(3)">Indietro</button>
   </div>
 </div>
-
-<!-- VIEW -->
 <div id="screen-view" class="hidden">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
     <div>
@@ -190,73 +189,68 @@
     <button class="btn" style="width:auto;padding:9px 14px;font-size:13px" onclick="showScreen('join')">+ Aggiungi</button>
   </div>
   <div class="card">
-    <p class="lbl">Chi viene 🐔</p>
+    <p class="lbl">Chi viene</p>
     <div id="p-list"></div>
   </div>
   <div id="match-section"></div>
-  <button class="btn-sec" style="margin-top:20px" onclick="showScreen('lobby')">← Torna all'evento</button>
+  <button class="btn-sec" style="margin-top:20px" onclick="showScreen('lobby')">Torna all evento</button>
 </div>
-
-<!-- INFO -->
 <div id="screen-info" class="hidden">
-  <h1 style="font-size:26px;margin-bottom:18px">Come funziona? 🐔</h1>
-  <div class="info-box"><h3>1. Crea l'evento</h3><p>Dai un nome — tipo "Weekend al lago" — e ricevi un codice univoco da 6 lettere.</p></div>
-  <div class="info-box"><h3>2. Condividi il codice</h3><p>Manda il codice agli amici su WhatsApp. Loro aprono il sito, inseriscono il codice e aggiungono la propria disponibilità.</p></div>
-  <div class="info-box"><h3>3. Vedi i risultati</h3><p>La sezione risultati mostra le date in comune, le attività più votate e i luoghi preferiti. I badge verdi = accordo unanime.</p></div>
-  <button class="btn" onclick="showScreen('lobby')">Torna all'evento</button>
+  <h1 style="font-size:26px;margin-bottom:18px">Come funziona?</h1>
+  <div class="info-box"><h3>1. Crea l evento</h3><p>Dai un nome e ricevi un codice univoco da condividere.</p></div>
+  <div class="info-box"><h3>2. Condividi il codice</h3><p>Manda il codice agli amici su WhatsApp. Loro aprono il sito e inseriscono le loro preferenze.</p></div>
+  <div class="info-box"><h3>3. Vedi i risultati</h3><p>Il calendario mostra per ogni giorno quante persone sono disponibili. Clicca un giorno per vedere i nomi.</p></div>
+  <button class="btn" onclick="showScreen('lobby')">Torna all evento</button>
 </div>
-
 </main>
 <div class="toast" id="toast"></div>
-
 <script>
-// ─── CONFIG SUPABASE ───────────────────────────────────────────────────────
-// Sostituisci questi valori con quelli del tuo progetto Supabase
-const SUPABASE_URL = 'https://asseitzxjzkjahlcvbyb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_EbeH7M0Yz_osQIqmKcHnww_v1Sxu2xY';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-// ──────────────────────────────────────────────────────────────────────────
+var SUPABASE_URL = 'https://asseitzxjzkjahlcvbyb.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_EbeH7M0Yz_osQIqmKcHnww_v1Sxu2xY';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
-  const TIMESLOTS = [
-  {id:'mattina',label:'Mattina',emoji:'🌅'},
-  {id:'pranzo',label:'Pranzo',emoji:'🍝'},
-  {id:'pomeriggio',label:'Pomeriggio',emoji:'☀️'},
-  {id:'aperitivo',label:'Aperitivo',emoji:'🍸'},
-  {id:'cena',label:'Cena',emoji:'🍽️'},
-  {id:'dopocena',label:'Dopo cena',emoji:'🌙'},
+var TIMESLOTS = [
+  {id:'mattina',label:'Mattina',emoji:'\u{1F305}'},
+  {id:'pranzo',label:'Pranzo',emoji:'\u{1F35D}'},
+  {id:'pomeriggio',label:'Pomeriggio',emoji:'\u2600\uFE0F'},
+  {id:'aperitivo',label:'Aperitivo',emoji:'\u{1F378}'},
+  {id:'cena',label:'Cena',emoji:'\u{1F37D}\uFE0F'},
+  {id:'dopocena',label:'Dopo cena',emoji:'\u{1F319}'}
 ];
-  
-const ACTIVITIES = [
-  {id:'cena',label:'Cenetta/Pranzetto',emoji:'🍽️'},
-  {id:'aperitivo',label:'Aperitivo',emoji:'🍸'},
-  {id:'cinema',label:'Cinema o filmetto a casa',emoji:'🎬'},
-  {id:'lavoretti',label:'Lavoretti',emoji:'🎨'},
-  {id:'museo',label:'Museo / Mostra',emoji:'🖼️'},
-  {id:'trekking',label:'Trekking',emoji:'🥾'},
-  {id:'spa',label:'Relax',emoji:'🌸'},
-  {id:'concerti',label:'Concerti / Live',emoji:'🎶'},
-  {id:'giochi',label:'Serata giochi',emoji:'🎮'},
-  {id:'shopping',label:'Shopping',emoji:'🛍️'},
-  {id:'lago',label:'Gita al lago',emoji:'🏞️'},
-  {id:'mare',label:'Gita al mare',emoji:'🏖️'},
-  {id:'parco',label:'Parco/Picnic',emoji:'🌲'},
-  {id:'bowling',label:'Bowling o bocce',emoji:'🎳'},
-];
-const PLACES = ['Navigli','Brera','Isola','Porta Romana','Moscova','Tortona','Porta Venezia','Nolo','Ticinese','Lambrate','Città Studi','Loreto','Bergamo','Lago di Como', 'Casa mia?🏠', 'Busto Arsizio & Dintorni','Lago Maggiore','Lago di Como', 'Zoagli','Genova', 'Propongo io!'];
-const AVATAR_COLORS = ['#C9F564','#D4A8FF','#FF8B94','#4ECDC4','#FFB347','#A8E6CF','#FF6B9D','#B8B8FF','#FFDAC1','#C7CEEA'];
 
-let state = { eventId:null, eventName:'', eventCode:'', participants:[], currentUser:null, selectedDates:[], selectedActivities:[], selectedPlaces:[], selectedTimeslots:[] };
+var ACTIVITIES = [
+  {id:'cena',label:'Cenetta o Pranzetto',emoji:'\u{1F37D}\uFE0F'},
+  {id:'aperitivo',label:'Aperitivo',emoji:'\u{1F378}'},
+  {id:'cinema',label:'Cinema o filmetto',emoji:'\u{1F3AC}'},
+  {id:'lavoretti',label:'Lavoretti',emoji:'\u{1F3A8}'},
+  {id:'museo',label:'Museo o Mostra',emoji:'\u{1F5BC}\uFE0F'},
+  {id:'trekking',label:'Trekking',emoji:'\u{1F97E}'},
+  {id:'spa',label:'Relax',emoji:'\u{1F338}'},
+  {id:'concerti',label:'Concerti o Live',emoji:'\u{1F3B6}'},
+  {id:'giochi',label:'Serata giochi',emoji:'\u{1F3AE}'},
+  {id:'shopping',label:'Shopping',emoji:'\u{1F6CD}\uFE0F'},
+  {id:'lago',label:'Gita al lago',emoji:'\u{1F3DE}\uFE0F'},
+  {id:'mare',label:'Gita al mare',emoji:'\u{1F3D6}\uFE0F'},
+  {id:'parco',label:'Parco o Picnic',emoji:'\u{1F332}'},
+  {id:'bowling',label:'Bowling o bocce',emoji:'\u{1F3B3}'}
+];
+
+var PLACES = ['Navigli','Brera','Isola','Porta Romana','Moscova','Tortona','Porta Venezia','Nolo','Ticinese','Lambrate','Citta Studi','Loreto','Bergamo','Lago di Como','Casa mia','Busto Arsizio','Lago Maggiore','Zoagli','Genova','Propongo io'];
+var AVATAR_COLORS = ['#C9F564','#D4A8FF','#FF8B94','#4ECDC4','#FFB347','#A8E6CF','#FF6B9D','#B8B8FF','#FFDAC1','#C7CEEA'];
+var MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+var WD = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
+
+var state = {eventId:null,eventName:'',eventCode:'',participants:[],currentUser:null,selectedDates:[],selectedActivities:[],selectedPlaces:[],selectedTimeslots:[]};
 
 function showScreen(id) {
-  ['home','lobby','join','fill','view','info'].forEach(s => document.getElementById('screen-'+s).classList.add('hidden'));
+  ['home','lobby','join','fill','view','info'].forEach(function(s){ document.getElementById('screen-'+s).classList.add('hidden'); });
   document.getElementById('screen-'+id).classList.remove('hidden');
 }
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
 }
 
 function generateCode() {
@@ -264,26 +258,26 @@ function generateCode() {
 }
 
 async function creaEvento() {
-  const name = document.getElementById('event-input').value.trim();
+  var name = document.getElementById('event-input').value.trim();
   if (!name) return;
-  const code = generateCode();
-  const { data, error } = await sb.from('events').insert({ name, code }).select().single();
-  if (error) { showToast('Errore nella creazione'); return; }
-  state.eventId = data.id;
-  state.eventName = data.name;
-  state.eventCode = data.code;
+  var code = generateCode();
+  var res = await sb.from('events').insert({name:name,code:code}).select().single();
+  if (res.error) { showToast('Errore nella creazione'); return; }
+  state.eventId = res.data.id;
+  state.eventName = res.data.name;
+  state.eventCode = res.data.code;
   state.participants = [];
   showLobby();
 }
 
 async function joinByCode() {
-  const code = document.getElementById('code-input').value.trim().toUpperCase();
+  var code = document.getElementById('code-input').value.trim().toUpperCase();
   if (code.length < 4) return;
-  const { data, error } = await sb.from('events').select('*').eq('code', code).single();
-  if (error || !data) { showToast('Codice non trovato 🐔'); return; }
-  state.eventId = data.id;
-  state.eventName = data.name;
-  state.eventCode = data.code;
+  var res = await sb.from('events').select('*').eq('code',code).single();
+  if (res.error || !res.data) { showToast('Codice non trovato'); return; }
+  state.eventId = res.data.id;
+  state.eventName = res.data.name;
+  state.eventCode = res.data.code;
   await loadParticipants();
   showLobby();
 }
@@ -291,25 +285,22 @@ async function joinByCode() {
 function showLobby() {
   document.getElementById('lobby-title').textContent = state.eventName;
   document.getElementById('lobby-code').textContent = state.eventCode;
-  const n = state.participants.length;
-  document.getElementById('lobby-sub').textContent = n === 0
-    ? 'Evento creato! Condividi il codice agli amici.'
-    : `${n} ${n===1?'persona ha':'persone hanno'} già risposto.`;
-  document.getElementById('btn-results').style.display = n >= 1 ? '' : 'none';
-  const pill = document.getElementById('pill-count');
-  if (n > 0) { pill.style.display=''; pill.textContent = n+(n===1?' 🐔':' 🐔🐔'); }
-  else pill.style.display='none';
+  var n = state.participants.length;
+  document.getElementById('lobby-sub').textContent = n===0 ? 'Evento creato! Condividi il codice.' : n+' '+(n===1?'persona ha':'persone hanno')+' gia risposto.';
+  document.getElementById('btn-results').style.display = n>=1 ? '' : 'none';
+  var pill = document.getElementById('pill-count');
+  if (n>0) { pill.style.display=''; pill.textContent=n+' persone'; } else pill.style.display='none';
   showScreen('lobby');
 }
 
 function copyCode() {
-  navigator.clipboard.writeText(state.eventCode).then(() => showToast('Codice copiato! 🐔'));
+  navigator.clipboard.writeText(state.eventCode).then(function(){ showToast('Codice copiato!'); });
 }
 
 function newEvent() {
-  state = { eventId:null, eventName:'', eventCode:'', participants:[], currentUser:null, selectedDates:[], selectedActivities:[], selectedPlaces:[], selectedTimeslots:[] };
-  document.getElementById('event-input').value = '';
-  document.getElementById('code-input').value = '';
+  state = {eventId:null,eventName:'',eventCode:'',participants:[],currentUser:null,selectedDates:[],selectedActivities:[],selectedPlaces:[],selectedTimeslots:[]};
+  document.getElementById('event-input').value='';
+  document.getElementById('code-input').value='';
   showScreen('home');
 }
 
@@ -318,194 +309,242 @@ function goHome() {
 }
 
 async function loadParticipants() {
-  const { data } = await sb.from('responses').select('*').eq('event_id', state.eventId);
-  state.participants = data || [];
+  var res = await sb.from('responses').select('*').eq('event_id',state.eventId);
+  state.participants = res.data || [];
 }
 
 function startFill() {
-  const name = document.getElementById('user-input').value.trim();
+  var name = document.getElementById('user-input').value.trim();
   if (!name) return;
-  const color = AVATAR_COLORS[state.participants.length % AVATAR_COLORS.length];
-  state.currentUser = { name, color };
-  state.selectedDates = []; state.selectedActivities = []; state.selectedPlaces = [];
-  const av = document.getElementById('fill-avatar');
-  av.style.background = color; av.textContent = name[0].toUpperCase();
-  document.getElementById('fill-name').textContent = name;
+  var existing = state.participants.find(function(p){ return p.name.toLowerCase()===name.toLowerCase(); });
+  if (existing) { showToast('Hai gia risposto ' + name + '!'); return; }
+  var color = AVATAR_COLORS[state.participants.length % AVATAR_COLORS.length];
+  state.currentUser = {name:name,color:color};
+  state.selectedDates=[]; state.selectedActivities=[]; state.selectedPlaces=[]; state.selectedTimeslots=[];
+  var av = document.getElementById('fill-avatar');
+  av.style.background=color; av.textContent=name[0].toUpperCase();
+  document.getElementById('fill-name').textContent=name;
   buildCalendar(); buildActivities(); buildPlaces(); buildTimeslots();
   goStep(1);
   showScreen('fill');
 }
 
 function goStep(n) {
-  [1,2,3,4].forEach(i => {
-    document.getElementById('step'+i).classList.toggle('hidden', i!==n);
-    const dot = document.getElementById('dot'+i);
-    dot.className = 'step-dot'+(i<n?' done':i===n?' active':'');
+  [1,2,3,4].forEach(function(i){
+    document.getElementById('step'+i).classList.toggle('hidden',i!==n);
+    var dot=document.getElementById('dot'+i);
+    dot.className='step-dot'+(i<n?' done':i===n?' active':'');
   });
-  document.getElementById('fill-step-lbl').textContent = 'step '+n+' di 4';
+  document.getElementById('fill-step-lbl').textContent='step '+n+' di 4';
 }
 
 function buildCalendar() {
-  const wrap = document.getElementById('cal-wrap');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const WD = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
-  let html = '';
-  for (let m = 0; m < 1; m++) {
-    const ref = new Date(today.getFullYear(), today.getMonth() + m, 1);
-    const year = ref.getFullYear();
-    const month = ref.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let startDow = new Date(year, month, 1).getDay();
-    startDow = (startDow + 6) % 7;
-    html += `<p style="font-size:13px;font-weight:800;color:#F3EEFF;margin-bottom:8px${m>0?';margin-top:20px':''}">${MONTHS[month]} ${year}</p>`;
-    html += '<div class="day-grid">';
-    WD.forEach(l => html += `<div class="day-hdr">${l}</div>`);
-    html += '</div><div class="day-grid">';
-    for (let e = 0; e < startDow; e++) html += '<div></div>';
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
-      if (date < today) {
-        html += `<div class="day-cell" style="opacity:0.2;cursor:default"><span class="dc-num">${d}</span></div>`;
-      } else {
-        const key = date.toISOString().split('T')[0];
-        const dow = date.getDay(); const wknd = dow===0||dow===6;
-        html += `<div class="day-cell${wknd?' wknd':''}" data-key="${key}" onclick="toggleDate(this)"><span class="dc-num">${d}</span></div>`;
-      }
+  var wrap=document.getElementById('cal-wrap');
+  var today=new Date(); today.setHours(0,0,0,0);
+  var ref=new Date(today.getFullYear(),today.getMonth(),1);
+  var year=ref.getFullYear(); var month=ref.getMonth();
+  var dim=new Date(year,month+1,0).getDate();
+  var startDow=new Date(year,month,1).getDay(); startDow=(startDow+6)%7;
+  var html='<p style="font-size:13px;font-weight:800;color:#F3EEFF;margin-bottom:8px">'+MONTHS[month]+' '+year+'</p>';
+  html+='<div class="day-grid">';
+  WD.forEach(function(l){ html+='<div class="day-hdr">'+l+'</div>'; });
+  html+='</div><div class="day-grid">';
+  for(var e=0;e<startDow;e++) html+='<div></div>';
+  for(var d=1;d<=dim;d++){
+    var date=new Date(year,month,d);
+    if(date<today){
+      html+='<div class="day-cell past"><span class="dc-num">'+d+'</span></div>';
+    } else {
+      var key=date.toISOString().split('T')[0];
+      var dow=date.getDay(); var wknd=dow===0||dow===6;
+      html+='<div class="day-cell'+(wknd?' wknd':'')+'" data-key="'+key+'" onclick="toggleDate(this)"><span class="dc-num">'+d+'</span></div>';
     }
-    html += '</div>';
   }
-  html += `<p style="font-size:11px;color:rgba(243,238,255,.4);margin-top:10px;font-family:monospace" id="date-count">0 date selezionate</p>`;
-  wrap.innerHTML = html;
+  html+='</div><p style="font-size:11px;color:rgba(243,238,255,.4);margin-top:10px;font-family:monospace" id="date-count">0 date selezionate</p>';
+  wrap.innerHTML=html;
 }
 
-function toggleDate(el) {
-  const key = el.dataset.key;
-  const idx = state.selectedDates.indexOf(key);
-  if (idx>-1) state.selectedDates.splice(idx,1); else state.selectedDates.push(key);
+function toggleDate(el){
+  var key=el.dataset.key;
+  var idx=state.selectedDates.indexOf(key);
+  if(idx>-1) state.selectedDates.splice(idx,1); else state.selectedDates.push(key);
   el.classList.toggle('sel');
-  document.getElementById('date-count').textContent = state.selectedDates.length+' '+(state.selectedDates.length===1?'data':'date')+' selezionate';
+  document.getElementById('date-count').textContent=state.selectedDates.length+' '+(state.selectedDates.length===1?'data':'date')+' selezionate';
 }
 
-
-function buildTimeslots() {
-  document.getElementById('timeslot-grid').innerHTML = TIMESLOTS.map(t =>
-    '<div class="act-item" data-id="' + t.id + '" onclick="toggleTimeslot(this)"><span style="font-size:18px">' + t.emoji + '</span><span>' + t.label + '</span></div>'
-  ).join('');
+function buildTimeslots(){
+  document.getElementById('timeslot-grid').innerHTML=TIMESLOTS.map(function(t){
+    return '<div class="act-item" data-id="'+t.id+'" onclick="toggleTimeslot(this)"><span style="font-size:18px">'+t.emoji+'</span><span>'+t.label+'</span></div>';
+  }).join('');
 }
-function toggleTimeslot(el) {
-  const id = el.dataset.id;
-  const idx = state.selectedTimeslots.indexOf(id);
-  if (idx>-1) state.selectedTimeslots.splice(idx,1); else state.selectedTimeslots.push(id);
-  el.classList.toggle('sel');
-}
-  
-function buildActivities() {
-  document.getElementById('act-grid').innerHTML = ACTIVITIES.map(a =>
-    `<div class="act-item" data-id="${a.id}" onclick="toggleAct(this)">
-      <span style="font-size:18px">${a.emoji}</span><span>${a.label}</span></div>`
-  ).join('');
-}
-function toggleAct(el) {
-  const id = el.dataset.id; const idx = state.selectedActivities.indexOf(id);
-  if (idx>-1) state.selectedActivities.splice(idx,1); else state.selectedActivities.push(id);
+function toggleTimeslot(el){
+  var id=el.dataset.id; var idx=state.selectedTimeslots.indexOf(id);
+  if(idx>-1) state.selectedTimeslots.splice(idx,1); else state.selectedTimeslots.push(id);
   el.classList.toggle('sel');
 }
 
-function buildPlaces() {
-  document.getElementById('place-wrap').innerHTML = PLACES.map(p =>
-    `<div class="place-chip" data-place="${p}" onclick="togglePlace(this)">${p}</div>`
-  ).join('');
+function buildActivities(){
+  document.getElementById('act-grid').innerHTML=ACTIVITIES.map(function(a){
+    return '<div class="act-item" data-id="'+a.id+'" onclick="toggleAct(this)"><span style="font-size:18px">'+a.emoji+'</span><span>'+a.label+'</span></div>';
+  }).join('');
 }
-
-
-function togglePlace(el) {
-  const p = el.dataset.place; const idx = state.selectedPlaces.indexOf(p);
-  if (idx>-1) state.selectedPlaces.splice(idx,1); else state.selectedPlaces.push(p);
+function toggleAct(el){
+  var id=el.dataset.id; var idx=state.selectedActivities.indexOf(id);
+  if(idx>-1) state.selectedActivities.splice(idx,1); else state.selectedActivities.push(id);
   el.classList.toggle('sel');
 }
 
-async function saveResponse() {
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Salvataggio...';
-  const { error } = await sb.from('responses').insert({
-    event_id: state.eventId,
-    name: state.currentUser.name,
-    color: state.currentUser.color,
-    dates: state.selectedDates,
-    activities: state.selectedActivities,
-    places: state.selectedPlaces,
-    timeslots: state.selectedTimeslots,
+function buildPlaces(){
+  document.getElementById('place-wrap').innerHTML=PLACES.map(function(p){
+    return '<div class="place-chip" data-place="'+p+'" onclick="togglePlace(this)">'+p+'</div>';
+  }).join('');
+}
+function togglePlace(el){
+  var p=el.dataset.place; var idx=state.selectedPlaces.indexOf(p);
+  if(idx>-1) state.selectedPlaces.splice(idx,1); else state.selectedPlaces.push(p);
+  el.classList.toggle('sel');
+}
+
+async function saveResponse(){
+  var btn=document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='Salvataggio...';
+  var res=await sb.from('responses').insert({
+    event_id:state.eventId,
+    name:state.currentUser.name,
+    color:state.currentUser.color,
+    dates:state.selectedDates,
+    activities:state.selectedActivities,
+    places:state.selectedPlaces,
+    timeslots:state.selectedTimeslots
   });
-  btn.disabled = false; btn.textContent = '✓ Salva la mia risposta';
-  if (error) { showToast('Errore nel salvataggio'); return; }
-  showToast('Risposta salvata! 🐔');
-  document.getElementById('user-input').value = '';
+  btn.disabled=false; btn.textContent='Salva la mia risposta';
+  if(res.error){ showToast('Errore nel salvataggio'); return; }
+  showToast('Risposta salvata!');
+  document.getElementById('user-input').value='';
   await loadParticipants();
   showLobby();
 }
 
-async function loadAndShowResults() {
+async function loadAndShowResults(){
   await loadParticipants();
   renderView();
   showScreen('view');
 }
 
-function renderView() {
-  document.getElementById('view-title').textContent = state.eventName;
-  const n = state.participants.length;
-  document.getElementById('view-count').textContent = n+' '+(n===1?'risposta':'risposte');
-  document.getElementById('p-list').innerHTML = state.participants.map(p =>
-    `<div class="p-row">
-      <div class="avatar" style="background:${p.color}">${p.name[0].toUpperCase()}</div>
-      <div style="flex:1;font-size:15px;font-weight:700">${p.name}</div>
-      <span style="font-size:11px;color:rgba(243,238,255,.4);font-family:monospace">${p.dates.length}gg · ${p.activities.length} att.</span>
-    </div>`
-  ).join('');
+function renderView(){
+  document.getElementById('view-title').textContent=state.eventName;
+  var n=state.participants.length;
+  document.getElementById('view-count').textContent=n+' '+(n===1?'risposta':'risposte');
+  document.getElementById('p-list').innerHTML=state.participants.map(function(p){
+    return '<div class="p-row"><div class="avatar" style="background:'+p.color+'">'+p.name[0].toUpperCase()+'</div><div style="flex:1;font-size:15px;font-weight:700">'+p.name+'</div><span style="font-size:11px;color:rgba(243,238,255,.4);font-family:monospace">'+(p.dates||[]).length+' giorni</span></div>';
+  }).join('');
 
-  const ms = document.getElementById('match-section');
-  if (n < 2) {
-    ms.innerHTML = `<div class="card" style="text-align:center;padding:40px 20px">
-      <p style="font-size:44px;margin-bottom:10px">🐔</p>
-      <p style="font-size:15px;font-weight:800;margin-bottom:5px">Serve almeno un'altra persona</p>
-      <p style="font-size:13px;color:rgba(243,238,255,.4)">Condividi il codice <strong style="color:#C9F564">${state.eventCode}</strong> agli amici!</p>
-    </div>`;
+  var ms=document.getElementById('match-section');
+  if(n<2){
+    ms.innerHTML='<div class="card" style="text-align:center;padding:40px 20px"><p style="font-size:44px;margin-bottom:10px">\u{1F414}</p><p style="font-size:15px;font-weight:800;margin-bottom:5px">Serve almeno un altra persona</p><p style="font-size:13px;color:rgba(243,238,255,.4)">Condividi il codice <strong style="color:#C9F564">'+state.eventCode+'</strong></p></div>';
     return;
   }
-  const dateCount={}, actCount={}, placeCount={};
-  state.participants.forEach(p => {
-    (p.dates||[]).forEach(d => { dateCount[d]=(dateCount[d]||0)+1; });
-    (p.activities||[]).forEach(a => { actCount[a]=(actCount[a]||0)+1; });
-    (p.places||[]).forEach(pl => { placeCount[pl]=(placeCount[pl]||0)+1; });
+
+  var dateMap={}, actCount={}, placeCount={}, tsCount={};
+  state.participants.forEach(function(p){
+    (Array.isArray(p.dates)?p.dates:[]).forEach(function(d){ if(!dateMap[d]) dateMap[d]=[]; dateMap[d].push(p.name); });
+    (Array.isArray(p.activities)?p.activities:[]).forEach(function(a){ actCount[a]=(actCount[a]||0)+1; });
+    (Array.isArray(p.places)?p.places:[]).forEach(function(pl){ placeCount[pl]=(placeCount[pl]||0)+1; });
+    (Array.isArray(p.timeslots)?p.timeslots:[]).forEach(function(t){ tsCount[t]=(tsCount[t]||0)+1; });
   });
-  const commonDates = Object.entries(dateCount).filter(([,c])=>c===n).map(([d])=>d).sort();
-  const commonActs = Object.entries(actCount).filter(([,c])=>c>=Math.ceil(n/2)).sort((a,b)=>b[1]-a[1]);
-  const commonPlaces = Object.entries(placeCount).filter(([,c])=>c>=Math.ceil(n/2)).sort((a,b)=>b[1]-a[1]);
-  const fmtDate = d => new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
-  
-let html = '<p class="section-ttl">✦ Risultati</p>';
-  html += `<div class="match-card"><p class="match-title">📅 Date in comune (${commonDates.length})</p>`;
-  if (commonDates.length) commonDates.slice(0,6).forEach(d => { html+=`<div class="match-row"><span class="match-lbl">${fmtDate(d)}</span><span class="badge full">tutti liberi ✓</span></div>`; });
-  else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessuna data in comune. Aggiungete più giorni!</p>';
-  html += '</div>';
-  html += '<div class="match-card"><p class="match-title">🎯 Attività più votate</p>';
-  if (commonActs.length) commonActs.forEach(([id,count]) => { const a=ACTIVITIES.find(x=>x.id===id); html+=`<div class="match-row"><span class="match-lbl">${a.emoji} ${a.label}</span><span class="badge${count===n?' full':''}">${count}/${n}</span></div>`; });
-  else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessuna attività in comune.</p>';
-  html += '</div>';
-  html += '<div class="match-card"><p class="match-title">📍 Luoghi preferiti</p>';
-  if (commonPlaces.length) commonPlaces.forEach(([place,count]) => { html+=`<div class="match-row"><span class="match-lbl">${place}</span><span class="badge${count===n?' full':''}">${count}/${n}</span></div>`; });
-  else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessun luogo in comune.</p>';
-  html += '</div>';
-  html += '<div class="match-card"><p class="match-title">🕐 Orari preferiti</p>';
-  const tsCount={};
-   state.participants.forEach(function(p) {
-    (Array.isArray(p.timeslots) ? p.timeslots : []).forEach(function(t) { tsCount[t]=(tsCount[t]||0)+1; });
-  });
-  const commonTs = Object.entries(tsCount).filter(function(e){return e[1]>=Math.ceil(n/2)}).sort(function(a,b){return b[1]-a[1]});
-  if (commonTs.length) commonTs.forEach(function(e) { const t=TIMESLOTS.find(function(x){return x.id===e[0]}); html+='<div class="match-row"><span class="match-lbl">'+t.emoji+' '+t.label+'</span><span class="badge'+(e[1]===n?' full':'')+'">'+e[1]+'/'+n+'</span></div>'; });
-  else html += '<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessun orario in comune.</p>';
-  html += '</div>';
-  ms.innerHTML = html;
+
+  var commonActs=Object.entries(actCount).filter(function(e){return e[1]>=Math.ceil(n/2);}).sort(function(a,b){return b[1]-a[1];});
+  var commonPlaces=Object.entries(placeCount).filter(function(e){return e[1]>=Math.ceil(n/2);}).sort(function(a,b){return b[1]-a[1];});
+  var commonTs=Object.entries(tsCount).filter(function(e){return e[1]>=Math.ceil(n/2);}).sort(function(a,b){return b[1]-a[1];});
+  var bestDates=Object.entries(dateMap).filter(function(e){return e[1].length===n;}).map(function(e){return e[0];}).sort();
+
+  var topDate=bestDates.length>0?bestDates[0]:null;
+  var topAct=commonActs.length>0?ACTIVITIES.find(function(a){return a.id===commonActs[0][0];}):null;
+  var topPlace=commonPlaces.length>0?commonPlaces[0][0]:null;
+  var topTs=commonTs.length>0?TIMESLOTS.find(function(t){return t.id===commonTs[0][0];}):null;
+
+  var html='<p class="section-ttl">Risultati</p>';
+
+  if(topDate||topAct||topPlace||topTs){
+    html+='<div style="background:linear-gradient(135deg,rgba(201,245,100,0.15),rgba(212,168,255,0.1));border:1.5px solid rgba(201,245,100,0.4);border-radius:16px;padding:20px;margin-bottom:16px">';
+    html+='<p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:800;color:#C9F564;margin-bottom:12px">Il momento perfetto</p>';
+    if(topDate) html+='<p style="font-size:16px;font-weight:800;color:#F3EEFF;margin-bottom:6px">'+new Date(topDate+'T00:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})+'</p>';
+    if(topTs) html+='<p style="font-size:15px;font-weight:700;color:#F3EEFF;margin-bottom:6px">'+topTs.label+'</p>';
+    if(topAct) html+='<p style="font-size:15px;font-weight:700;color:#F3EEFF;margin-bottom:6px">'+topAct.label+'</p>';
+    if(topPlace){
+      var tpLabel=topPlace;
+      if(topPlace==='Casa mia'){ var tw=state.participants.filter(function(p){return (Array.isArray(p.places)?p.places:[]).indexOf('Casa mia')>-1;}).map(function(p){return p.name;}); tpLabel='Casa di '+tw.join(' o '); }
+      html+='<p style="font-size:15px;font-weight:700;color:#F3EEFF">'+tpLabel+'</p>';
+    }
+    html+='</div>';
+  }
+
+  // Calendario risultati
+  html+='<div class="match-card"><p class="match-title">Disponibilita per giorno — tocca per vedere chi</p>';
+  var today2=new Date(); today2.setHours(0,0,0,0);
+  var ref2=new Date(today2.getFullYear(),today2.getMonth(),1);
+  var yr=ref2.getFullYear(); var mo=ref2.getMonth();
+  var dim2=new Date(yr,mo+1,0).getDate();
+  var sd=new Date(yr,mo,1).getDay(); sd=(sd+6)%7;
+  html+='<p style="font-size:12px;font-weight:800;color:#F3EEFF;margin-bottom:8px">'+MONTHS[mo]+' '+yr+'</p>';
+  html+='<div class="day-grid">';
+  WD.forEach(function(l){ html+='<div class="day-hdr">'+l+'</div>'; });
+  html+='</div><div class="day-grid">';
+  for(var ee=0;ee<sd;ee++) html+='<div class="res-day empty"></div>';
+  for(var dd=1;dd<=dim2;dd++){
+    var dt=new Date(yr,mo,dd);
+    var kk=dt.toISOString().split('T')[0];
+    if(dt<today2){
+      html+='<div class="res-day past"><span class="rd-num">'+dd+'</span></div>';
+    } else {
+      var voters=dateMap[kk]||[];
+      var cnt=voters.length;
+      var cls2='res-day';
+      if(cnt===n) cls2+=' all-votes has-votes';
+      else if(cnt>0) cls2+=' has-votes';
+      var cntStr=cnt>0?'<span class="rd-count">'+cnt+'/'+n+'</span>':'';
+      var voterStr=cnt>0?voters.join(', '):'Nessuno libero';
+      var dateStr=dt.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
+      html+='<div class="'+cls2+'" data-voters="'+voterStr+'" data-date="'+dateStr+'" onclick="mostraGiorno(this)"><span class="rd-num">'+dd+'</span>'+cntStr+'</div>';
+    }
+  }
+  html+='</div>';
+  html+='<div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:rgba(243,238,255,.4);align-items:center;flex-wrap:wrap">';
+  html+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#C9F564;display:inline-block"></span>tutti liberi</span>';
+  html+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(201,245,100,0.15);border:1px solid rgba(201,245,100,0.4);display:inline-block"></span>alcuni liberi</span>';
+  html+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);display:inline-block"></span>nessuno</span>';
+  html+='</div></div>';
+
+  // Attivita
+  html+='<div class="match-card"><p class="match-title">Attivita piu votate</p>';
+  if(commonActs.length) commonActs.forEach(function(e){ var a=ACTIVITIES.find(function(x){return x.id===e[0];}); if(a) html+='<div class="match-row"><span class="match-lbl">'+a.label+'</span><span class="badge'+(e[1]===n?' full':'')+'">'+e[1]+'/'+n+'</span></div>'; });
+  else html+='<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessuna attivita in comune.</p>';
+  html+='</div>';
+
+  // Luoghi
+  html+='<div class="match-card"><p class="match-title">Luoghi preferiti</p>';
+  if(commonPlaces.length){
+    commonPlaces.forEach(function(e){
+      var pn=e[0]; var dl=pn;
+      if(pn==='Casa mia'){ var wv=state.participants.filter(function(p){return (Array.isArray(p.places)?p.places:[]).indexOf('Casa mia')>-1;}).map(function(p){return p.name;}); dl='Casa di '+wv.join(' o ')+' (chi ha votato)'; }
+      html+='<div class="match-row"><span class="match-lbl">'+dl+'</span><span class="badge'+(e[1]===n?' full':'')+'">'+e[1]+'/'+n+'</span></div>';
+    });
+  } else html+='<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessun luogo in comune.</p>';
+  html+='</div>';
+
+  // Orari
+  html+='<div class="match-card"><p class="match-title">Orari preferiti</p>';
+  if(commonTs.length) commonTs.forEach(function(e){ var t=TIMESLOTS.find(function(x){return x.id===e[0];}); if(t) html+='<div class="match-row"><span class="match-lbl">'+t.label+'</span><span class="badge'+(e[1]===n?' full':'')+'">'+e[1]+'/'+n+'</span></div>'; });
+  else html+='<p style="color:rgba(243,238,255,.4);font-size:13px;padding:7px 0">Nessun orario in comune.</p>';
+  html+='</div>';
+
+  ms.innerHTML=html;
+}
+
+function mostraGiorno(el){
+  var date=el.dataset.date;
+  var voters=el.dataset.voters;
+  showToast(date+': '+voters);
 }
 
 goHome();
