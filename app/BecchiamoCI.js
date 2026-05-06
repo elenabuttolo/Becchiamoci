@@ -1,130 +1,23 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { supabase as sb } from "../lib/supabase";
 import "./styles/becchiamo.css";
-
-const TIMESLOTS = [
-  { id: "mattina", label: "Mattina", emoji: "🌅" },
-  { id: "pranzo", label: "Pranzo", emoji: "🍝" },
-  { id: "pomeriggio", label: "Pomeriggio", emoji: "☀️" },
-  { id: "aperitivo", label: "Aperitivo", emoji: "🍸" },
-  { id: "cena", label: "Cena", emoji: "🍽️" },
-  { id: "dopocena", label: "Dopo cena", emoji: "🌙" },
-];
-
-const ACTIVITIES = [
-  { id: "cena", label: "Cenetta o Pranzetto", emoji: "🍽️" },
-  { id: "aperitivo", label: "Aperitivo", emoji: "🍸" },
-  { id: "cinema", label: "Cinema o filmetto", emoji: "🎬" },
-  { id: "lavoretti", label: "Lavoretti", emoji: "🎨" },
-  { id: "museo", label: "Museo o Mostra", emoji: "🖼️" },
-  { id: "trekking", label: "Trekking", emoji: "🥾" },
-  { id: "spa", label: "Relax", emoji: "🌸" },
-  { id: "concerti", label: "Concerti o Live", emoji: "🎶" },
-  { id: "giochi", label: "Serata giochi", emoji: "🎮" },
-  { id: "shopping", label: "Shopping", emoji: "🛍️" },
-  { id: "lago", label: "Gita al lago", emoji: "🏞️" },
-  { id: "mare", label: "Gita al mare", emoji: "🏖️" },
-  { id: "parco", label: "Parco o Picnic", emoji: "🌲" },
-  { id: "bowling", label: "Bowling o bocce", emoji: "🎳" },
-];
-
-const PLACES = [
-  "Navigli",
-  "Brera",
-  "Isola",
-  "Porta Romana",
-  "Moscova",
-  "Tortona",
-  "Porta Venezia",
-  "Nolo",
-  "Ticinese",
-  "Lambrate",
-  "Citta Studi",
-  "Loreto",
-  "Bergamo",
-  "Lago di Como",
-  "Casa mia",
-  "Busto Arsizio",
-  "Lago Maggiore",
-  "Zoagli",
-  "Genova",
-  "Propongo io",
-];
-
-const AVATAR_COLORS = [
-  "#C9F564",
-  "#D4A8FF",
-  "#FF8B94",
-  "#4ECDC4",
-  "#FFB347",
-  "#A8E6CF",
-  "#FF6B9D",
-  "#B8B8FF",
-  "#FFDAC1",
-  "#C7CEEA",
-];
-
-const MONTHS = [
-  "Gennaio",
-  "Febbraio",
-  "Marzo",
-  "Aprile",
-  "Maggio",
-  "Giugno",
-  "Luglio",
-  "Agosto",
-  "Settembre",
-  "Ottobre",
-  "Novembre",
-  "Dicembre",
-];
-const WD = ["Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do"];
-
-function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-function isoDate(date) {
-  return date.toLocaleDateString('en-CA')
-}
-
-function getCurrentMonth() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const startDow = (new Date(year, month, 1).getDay() + 6) % 7;
-  return { today, year, month, daysInMonth, startDow };
-}
-
-function formatFullDate(dateKey) {
-  return new Date(`${dateKey}T00:00:00`).toLocaleDateString("it-IT", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
-
-function formatShortDate(date) {
-  return date.toLocaleDateString("it-IT", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-}
-
-function toggleInArray(items, value) {
-  return items.includes(value)
-    ? items.filter((item) => item !== value)
-    : [...items, value];
-}
-
-function safeArray(value) {
-  return Array.isArray(value) ? value : [];
-}
+import { toggleInArray, safeArray } from "./utils/generic";
+import { supabase as sb } from "./lib/supabase";
+import {
+  getCurrentMonth,
+  formatFullDate,
+  formatShortDate,
+  isoDate,
+} from "./utils/date_utils";
+import {
+  TIMESLOTS,
+  PLACES,
+  ACTIVITIES,
+  AVATAR_COLORS,
+  MONTHS,
+  WD,
+} from "./utils/constants";
 
 export default function BecchiamoCI() {
   const [screen, setScreen] = useState("home");
@@ -148,11 +41,23 @@ export default function BecchiamoCI() {
 
   const monthInfo = useMemo(() => getCurrentMonth(), []);
 
-  const showToast = (message) => {
-    setToast(message);
-    setToastVisible(true);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastVisible(false), 3000);
+  const joinByCode = async () => {
+    const code = codeInput.trim().toUpperCase();
+    if (code.length < 4) return;
+    const { data, error } = await sb
+      .from("events")
+      .select("*")
+      .eq("code", code)
+      .single();
+    if (error || !data) {
+      showToast("Codice non trovato");
+      return;
+    }
+    setEventId(data.id);
+    setEventName(data.name);
+    setEventCode(data.code);
+    await loadParticipants(data.id);
+    setScreen("lobby");
   };
 
   const loadParticipants = async (id = eventId) => {
@@ -167,7 +72,7 @@ export default function BecchiamoCI() {
     return loaded;
   };
 
-  const creaEvento = async () => {
+  const createEvent = async () => {
     const name = eventInput.trim();
     if (!name) return;
     const code = generateCode();
@@ -186,24 +91,11 @@ export default function BecchiamoCI() {
     setParticipants([]);
     setScreen("lobby");
   };
-
-  const joinByCode = async () => {
-    const code = codeInput.trim().toUpperCase();
-    if (code.length < 4) return;
-    const { data, error } = await sb
-      .from("events")
-      .select("*")
-      .eq("code", code)
-      .single();
-    if (error || !data) {
-      showToast("Codice non trovato");
-      return;
-    }
-    setEventId(data.id);
-    setEventName(data.name);
-    setEventCode(data.code);
-    await loadParticipants(data.id);
-    setScreen("lobby");
+  const showToast = (message) => {
+    setToast(message);
+    setToastVisible(true);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToastVisible(false), 3000);
   };
 
   const copyCode = async () => {
@@ -243,7 +135,8 @@ export default function BecchiamoCI() {
       showToast(`Hai gia risposto ${name}!`);
       return;
     }
-    const color = AVATAR_COLORS[latestParticipants.length % AVATAR_COLORS.length];
+    const color =
+      AVATAR_COLORS[latestParticipants.length % AVATAR_COLORS.length];
     setCurrentUser({ name, color });
     setSelectedDates([]);
     setSelectedActivities([]);
@@ -358,7 +251,8 @@ export default function BecchiamoCI() {
               <span className="acc">becchiamo</span>? 🐓
             </h1>
             <p className="sub">
-              Crea un evento, condividi il codice agli altri polli e trovate insieme il momento perfetto.
+              Crea un evento, condividi il codice agli altri polli e trovate
+              insieme il momento perfetto.
             </p>
             <div className="card">
               <p className="lbl">Crea un nuovo evento</p>
@@ -367,9 +261,9 @@ export default function BecchiamoCI() {
                 placeholder="es. Weekend al lago"
                 value={eventInput}
                 onChange={(event) => setEventInput(event.target.value)}
-                onKeyDown={(event) => event.key === "Enter" && creaEvento()}
+                onKeyDown={(event) => event.key === "Enter" && createEvent()}
               />
-              <button className="btn" onClick={creaEvento}>
+              <button className="btn" onClick={createEvent}>
                 Crea evento
               </button>
             </div>
@@ -381,10 +275,14 @@ export default function BecchiamoCI() {
                 className="join-code-input"
                 maxLength={6}
                 value={codeInput}
-                onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
-                onKeyDown={(event) => event.key === "Enter" && joinByCode()}
+                onChange={(event) =>
+                  setCodeInput(event.target.value.toUpperCase())
+                }
+                onKeyDown={(event) =>
+                  event.key === "Enter" && joinByCode(codeInput)
+                }
               />
-              <button className="btn-sec" onClick={joinByCode}>
+              <button className="btn-sec" onClick={() => joinByCode(codeInput)}>
                 Unisciti all evento
               </button>
             </div>
@@ -420,7 +318,9 @@ export default function BecchiamoCI() {
           <div>
             <p className="lbl join-label">Chi sei?</p>
             <h1 className="join-title">Inserisci il tuo nome</h1>
-            <p className="sub">Cosi gli altri polli sapranno chi ha risposto.</p>
+            <p className="sub">
+              Cosi gli altri polli sapranno chi ha risposto.
+            </p>
             <div className="card">
               <input
                 type="text"
@@ -479,13 +379,22 @@ export default function BecchiamoCI() {
             </div>
             <div className="info-box">
               <h3>2. Condividi il codice</h3>
-              <p>Manda il codice agli amici su WhatsApp. Loro aprono il sito e inseriscono le loro preferenze.</p>
+              <p>
+                Manda il codice agli amici su WhatsApp. Loro aprono il sito e
+                inseriscono le loro preferenze.
+              </p>
             </div>
             <div className="info-box">
               <h3>3. Vedi i risultati</h3>
-              <p>Il calendario mostra per ogni giorno quante persone sono disponibili. Clicca un giorno per vedere i nomi.</p>
+              <p>
+                Il calendario mostra per ogni giorno quante persone sono
+                disponibili. Clicca un giorno per vedere i nomi.
+              </p>
             </div>
-            <button className="btn" onClick={() => setScreen(eventId ? "lobby" : "home")}>
+            <button
+              className="btn"
+              onClick={() => setScreen(eventId ? "lobby" : "home")}
+            >
               Torna all evento
             </button>
           </div>
@@ -540,7 +449,9 @@ function FillScreen({
           <CalendarPicker
             monthInfo={monthInfo}
             selectedDates={selectedDates}
-            toggleDate={(dateKey) => setSelectedDates((items) => toggleInArray(items, dateKey))}
+            toggleDate={(dateKey) =>
+              setSelectedDates((items) => toggleInArray(items, dateKey))
+            }
           />
           <button className="btn" onClick={() => setStep(2)}>
             Continua
@@ -558,7 +469,11 @@ function FillScreen({
                 <div
                   key={activity.id}
                   className={`act-item ${selectedActivities.includes(activity.id) ? "sel" : ""}`}
-                  onClick={() => setSelectedActivities((items) => toggleInArray(items, activity.id))}
+                  onClick={() =>
+                    setSelectedActivities((items) =>
+                      toggleInArray(items, activity.id),
+                    )
+                  }
                 >
                   <span className="item-emoji">{activity.emoji}</span>
                   <span>{activity.label}</span>
@@ -585,7 +500,9 @@ function FillScreen({
                 <div
                   key={place}
                   className={`place-chip ${selectedPlaces.includes(place) ? "sel" : ""}`}
-                  onClick={() => setSelectedPlaces((items) => toggleInArray(items, place))}
+                  onClick={() =>
+                    setSelectedPlaces((items) => toggleInArray(items, place))
+                  }
                 >
                   {place}
                 </div>
@@ -604,14 +521,20 @@ function FillScreen({
       {step === 4 && (
         <div>
           <h2 className="step-title">Che orari preferisci?</h2>
-          <p className="sub">Seleziona le fasce orarie in cui sei disponibile</p>
+          <p className="sub">
+            Seleziona le fasce orarie in cui sei disponibile
+          </p>
           <div className="card">
             <div className="act-grid">
               {TIMESLOTS.map((timeslot) => (
                 <div
                   key={timeslot.id}
                   className={`act-item ${selectedTimeslots.includes(timeslot.id) ? "sel" : ""}`}
-                  onClick={() => setSelectedTimeslots((items) => toggleInArray(items, timeslot.id))}
+                  onClick={() =>
+                    setSelectedTimeslots((items) =>
+                      toggleInArray(items, timeslot.id),
+                    )
+                  }
                 >
                   <span className="item-emoji">{timeslot.emoji}</span>
                   <span>{timeslot.label}</span>
@@ -633,18 +556,27 @@ function FillScreen({
 
 function CalendarPicker({ monthInfo, selectedDates, toggleDate }) {
   const blanks = Array.from({ length: monthInfo.startDow });
-  const days = Array.from({ length: monthInfo.daysInMonth }, (_, index) => index + 1);
+  const days = Array.from(
+    { length: monthInfo.daysInMonth },
+    (_, index) => index + 1,
+  );
   return (
     <div className="card">
-      <p className="month-title">{MONTHS[monthInfo.month]} {monthInfo.year}</p>
+      <p className="month-title">
+        {MONTHS[monthInfo.month]} {monthInfo.year}
+      </p>
       <div className="day-grid">
         {WD.map((label) => (
-          <div className="day-hdr" key={label}>{label}</div>
+          <div className="day-hdr" key={label}>
+            {label}
+          </div>
         ))}
       </div>
       <div className="day-grid">
-        {blanks.map((_, index) => <div key={`blank-${index}`} />)}
-        {days.map((day, index) => {
+        {blanks.map((_, index) => (
+          <div key={`blank-${index}`} />
+        ))}
+        {days.map((day, _) => {
           const date = new Date(monthInfo.year, monthInfo.month, day);
           const dateKey = isoDate(date);
           const isPast = date < monthInfo.today;
@@ -661,33 +593,47 @@ function CalendarPicker({ monthInfo, selectedDates, toggleDate }) {
         })}
       </div>
       <p className="date-count">
-        {selectedDates.length} {selectedDates.length === 1 ? "data" : "date"} selezionate
+        {selectedDates.length} {selectedDates.length === 1 ? "data" : "date"}{" "}
+        selezionate
       </p>
     </div>
   );
 }
 
-function ResultsScreen({ eventName, eventCode, participants, results, monthInfo, showToast, setScreen }) {
+function ResultsScreen({
+  eventName,
+  eventCode,
+  participants,
+  results,
+  monthInfo,
+  showToast,
+  setScreen,
+}) {
   const n = participants.length;
   const topDate = results.bestDates[0] || null;
   const topAct = results.commonActs.length
     ? ACTIVITIES.find((activity) => activity.id === results.commonActs[0][0])
     : null;
-  const topPlace = results.commonPlaces.length ? results.commonPlaces[0][0] : null;
+  const topPlace = results.commonPlaces.length
+    ? results.commonPlaces[0][0]
+    : null;
   const topTs = results.commonTs.length
     ? TIMESLOTS.find((timeslot) => timeslot.id === results.commonTs[0][0])
     : null;
   const casaMiaNames = participants
     .filter((participant) => safeArray(participant.places).includes("Casa mia"))
     .map((participant) => participant.name);
-  const topPlaceLabel = topPlace === "Casa mia" ? `Casa di ${casaMiaNames.join(" o ")}` : topPlace;
+  const topPlaceLabel =
+    topPlace === "Casa mia" ? `Casa di ${casaMiaNames.join(" o ")}` : topPlace;
 
   return (
     <div>
       <div className="view-head">
         <div>
           <h1 className="view-title">{eventName}</h1>
-          <p className="view-count">{n} {n === 1 ? "risposta" : "risposte"}</p>
+          <p className="view-count">
+            {n} {n === 1 ? "risposta" : "risposte"}
+          </p>
         </div>
         <button className="btn btn-inline" onClick={() => setScreen("join")}>
           + Aggiungi
@@ -701,7 +647,9 @@ function ResultsScreen({ eventName, eventCode, participants, results, monthInfo,
               {participant.name[0].toUpperCase()}
             </div>
             <div className="p-name">{participant.name}</div>
-            <span className="p-days">{safeArray(participant.dates).length} giorni</span>
+            <span className="p-days">
+              {safeArray(participant.dates).length} giorni
+            </span>
           </div>
         ))}
       </div>
@@ -710,7 +658,10 @@ function ResultsScreen({ eventName, eventCode, participants, results, monthInfo,
         <div className="card empty-results">
           <p className="empty-icon">🐔</p>
           <p className="empty-title">Serve almeno un altra persona</p>
-          <p className="empty-copy">Condividi il codice <strong className="empty-code">{eventCode}</strong></p>
+          <p className="empty-copy">
+            Condividi il codice{" "}
+            <strong className="empty-code">{eventCode}</strong>
+          </p>
         </div>
       ) : (
         <div>
@@ -718,16 +669,39 @@ function ResultsScreen({ eventName, eventCode, participants, results, monthInfo,
           {(topDate || topAct || topPlace || topTs) && (
             <div className="perfect-card">
               <p className="perfect-title">Il momento perfetto</p>
-              {topDate && <p className="perfect-date">{formatFullDate(topDate)}</p>}
+              {topDate && (
+                <p className="perfect-date">{formatFullDate(topDate)}</p>
+              )}
               {topTs && <p className="perfect-line">{topTs.label}</p>}
               {topAct && <p className="perfect-line">{topAct.label}</p>}
               {topPlaceLabel && <p className="perfect-line">{topPlaceLabel}</p>}
             </div>
           )}
-          <ResultsCalendar results={results} monthInfo={monthInfo} total={n} showToast={showToast} />
-          <VoteSection title="Attivita piu votate" entries={results.commonActs} total={n} type="activity" />
-          <VoteSection title="Luoghi preferiti" entries={results.commonPlaces} total={n} type="place" participants={participants} />
-          <VoteSection title="Orari preferiti" entries={results.commonTs} total={n} type="timeslot" />
+          <ResultsCalendar
+            results={results}
+            monthInfo={monthInfo}
+            total={n}
+            showToast={showToast}
+          />
+          <VoteSection
+            title="Attivita piu votate"
+            entries={results.commonActs}
+            total={n}
+            type="activity"
+          />
+          <VoteSection
+            title="Luoghi preferiti"
+            entries={results.commonPlaces}
+            total={n}
+            type="place"
+            participants={participants}
+          />
+          <VoteSection
+            title="Orari preferiti"
+            entries={results.commonTs}
+            total={n}
+            type="timeslot"
+          />
         </div>
       )}
 
@@ -740,16 +714,29 @@ function ResultsScreen({ eventName, eventCode, participants, results, monthInfo,
 
 function ResultsCalendar({ results, monthInfo, total, showToast }) {
   const blanks = Array.from({ length: monthInfo.startDow });
-  const days = Array.from({ length: monthInfo.daysInMonth }, (_, index) => index + 1);
+  const days = Array.from(
+    { length: monthInfo.daysInMonth },
+    (_, index) => index + 1,
+  );
   return (
     <div className="match-card">
-      <p className="match-title">Disponibilita per giorno — tocca per vedere chi</p>
-      <p className="month-title">{MONTHS[monthInfo.month]} {monthInfo.year}</p>
+      <p className="match-title">
+        Disponibilita per giorno — tocca per vedere chi
+      </p>
+      <p className="month-title">
+        {MONTHS[monthInfo.month]} {monthInfo.year}
+      </p>
       <div className="day-grid">
-        {WD.map((label) => <div className="day-hdr" key={label}>{label}</div>)}
+        {WD.map((label) => (
+          <div className="day-hdr" key={label}>
+            {label}
+          </div>
+        ))}
       </div>
       <div className="day-grid">
-        {blanks.map((_, index) => <div className="res-day empty" key={`blank-${index}`} />)}
+        {blanks.map((_, index) => (
+          <div className="res-day empty" key={`blank-${index}`} />
+        ))}
         {days.map((day) => {
           const date = new Date(monthInfo.year, monthInfo.month, day);
           const dateKey = isoDate(date);
@@ -762,18 +749,33 @@ function ResultsCalendar({ results, monthInfo, total, showToast }) {
             <div
               className={className}
               key={dateKey}
-              onClick={() => !isPast && showToast(`${formatShortDate(date)}: ${voterText}`)}
+              onClick={() =>
+                !isPast && showToast(`${formatShortDate(date)}: ${voterText}`)
+              }
             >
               <span className="rd-num">{day}</span>
-              {count > 0 && <span className="rd-count">{count}/{total}</span>}
+              {count > 0 && (
+                <span className="rd-count">
+                  {count}/{total}
+                </span>
+              )}
             </div>
           );
         })}
       </div>
       <div className="legend">
-        <span className="legend-item"><span className="legend-dot legend-full" />tutti liberi</span>
-        <span className="legend-item"><span className="legend-dot legend-some" />alcuni liberi</span>
-        <span className="legend-item"><span className="legend-dot legend-none" />nessuno</span>
+        <span className="legend-item">
+          <span className="legend-dot legend-full" />
+          tutti liberi
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot legend-some" />
+          alcuni liberi
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot legend-none" />
+          nessuno
+        </span>
       </div>
     </div>
   );
@@ -787,11 +789,15 @@ function VoteSection({ title, entries, total, type, participants = [] }) {
   }[type];
 
   const getLabel = (id) => {
-    if (type === "activity") return ACTIVITIES.find((activity) => activity.id === id)?.label;
-    if (type === "timeslot") return TIMESLOTS.find((timeslot) => timeslot.id === id)?.label;
+    if (type === "activity")
+      return ACTIVITIES.find((activity) => activity.id === id)?.label;
+    if (type === "timeslot")
+      return TIMESLOTS.find((timeslot) => timeslot.id === id)?.label;
     if (id === "Casa mia") {
       const names = participants
-        .filter((participant) => safeArray(participant.places).includes("Casa mia"))
+        .filter((participant) =>
+          safeArray(participant.places).includes("Casa mia"),
+        )
         .map((participant) => participant.name);
       return `Casa di ${names.join(" o ")} (chi ha votato)`;
     }
@@ -808,7 +814,9 @@ function VoteSection({ title, entries, total, type, participants = [] }) {
           return (
             <div className="match-row" key={id}>
               <span className="match-lbl">{label}</span>
-              <span className={`badge ${count === total ? "full" : ""}`}>{count}/{total}</span>
+              <span className={`badge ${count === total ? "full" : ""}`}>
+                {count}/{total}
+              </span>
             </div>
           );
         })
