@@ -24,6 +24,13 @@ export const ACTIVITIES = [
   { id: "bowling", label: "Bowling o bocce", emoji: "🎳" },
 ];
 
+export const STEPS = [
+  { step: 1, label: "data" },
+  { step: 2, label: "attività" },
+  { step: 3, label: "luogo" },
+  { step: 4, label: "orario" },
+];
+
 export const PLACES = [
   "Navigli",
   "Brera",

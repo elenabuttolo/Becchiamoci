@@ -17,6 +17,7 @@ import {
   AVATAR_COLORS,
   MONTHS,
   WD,
+  STEPS,
 } from "./utils/constants";
 
 export default function BecchiamoCI() {
@@ -248,12 +249,12 @@ export default function BecchiamoCI() {
   return (
     <div className="app-shell">
       <div className="chicken-bg">
-        <span className="ch ca ch-1">🐔</span>
-        <span className="ch cb ch-2">🐓</span>
-        <span className="ch cc ch-3">🐔</span>
-        <span className="ch ca ch-4">🐔</span>
-        <span className="ch cb ch-5">🐣</span>
-        <span className="ch cc ch-6">🐓</span>
+        <span className="ch ca ch-1">🐓</span>
+        <span className="ch cb ch-2">🥚</span>
+        <span className="ch cc ch-3">🥚</span>
+        <span className="ch ca ch-4">🐓</span>
+        <span className="ch cb ch-5">🐓</span>
+        <span className="ch cc ch-6">🥚</span>
       </div>
 
       <header>
@@ -264,9 +265,11 @@ export default function BecchiamoCI() {
           {participants.length > 0 && (
             <div className="pill">{participants.length} persone</div>
           )}
-          <div className="pill pill-btn" onClick={() => setScreen("info")}>
-            come funziona?
-          </div>
+          {screen === "home" && (
+            <div className="pill pill-btn" onClick={() => setScreen("info")}>
+              come funziona?
+            </div>
+          )}
         </div>
       </header>
 
@@ -344,6 +347,9 @@ export default function BecchiamoCI() {
 
         {screen === "join" && (
           <div>
+            <div className="fill-head">
+              <h1 className="lobby-title">{eventName}</h1>
+            </div>
             <p className="lbl join-label">Chi sei?</p>
             <h1 className="join-title">Inserisci il tuo nome</h1>
             <p className="sub">
@@ -369,6 +375,7 @@ export default function BecchiamoCI() {
 
         {screen === "fill" && currentUser && (
           <FillScreen
+            eventName={eventName}
             currentUser={currentUser}
             monthInfo={monthInfo}
             selectedDates={selectedDates}
@@ -437,6 +444,7 @@ export default function BecchiamoCI() {
 }
 
 function FillScreen({
+  eventName,
   currentUser,
   monthInfo,
   selectedDates,
@@ -461,20 +469,29 @@ function FillScreen({
   return (
     <div>
       <div className="fill-head">
-        <div className="avatar" style={{ background: currentUser.color }}>
-          {currentUser.name[0].toUpperCase()}
-        </div>
-        <div>
-          <p className="fill-name">{currentUser.name}</p>
-          <p className="fill-step">step {step} di 4</p>
+        <h1 className="lobby-title">{eventName}</h1>
+        <div className="fill-user">
+          <div className="avatar" style={{ background: currentUser.color }}>
+            {currentUser.name[0].toUpperCase()}
+          </div>
+          <div>
+            <p className="fill-name">{currentUser.name}</p>
+          </div>
         </div>
       </div>
+      <p className="fill-step">step {step} di 4</p>
       <div className="step-bar">
-        {[1, 2, 3, 4].map((dot) => (
-          <div
-            key={dot}
-            className={`step-dot ${dot < step ? "done" : dot === step ? "active" : ""}`}
-          />
+        {STEPS.map((dot) => (
+          <div key={dot.step} className="step-container">
+            <p
+              className={`step-label ${dot.step < step ? "done" : dot.step === step ? "active" : ""}`}
+            >
+              {dot.label}
+            </p>
+            <div
+              className={`step-dot ${dot.step < step ? "done" : dot.step === step ? "active" : ""}`}
+            />
+          </div>
         ))}
       </div>
 
@@ -499,7 +516,6 @@ function FillScreen({
         <div>
           <h2 className="step-title">Cosa ti va di fare?</h2>
           <p className="sub">Seleziona una o piu attivita</p>
-          <p className="sub">Attivita gia scelte:</p>
           <div className="card">
             <div className="act-grid">
               {eventActivities
@@ -680,7 +696,7 @@ function ResultsScreen({
           </p>
         </div>
         <button className="btn btn-inline" onClick={() => setScreen("join")}>
-          + Aggiungi
+          + Aggiungiti
         </button>
       </div>
       <div className="card">
