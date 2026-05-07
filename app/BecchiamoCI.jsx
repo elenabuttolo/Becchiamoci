@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./styles/becchiamo.css";
 import { toggleInArray, safeArray } from "./utils/generic";
 import { supabase as sb } from "./lib/supabase";
@@ -31,6 +31,7 @@ export default function BecchiamoCI() {
   const [userInput, setUserInput] = useState("");
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedActivities, setSelectedActivities] = useState([]);
+  const [eventActivities, setEventActivities] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
   const [selectedTimeslots, setSelectedTimeslots] = useState([]);
   const [step, setStep] = useState(1);
@@ -91,6 +92,32 @@ export default function BecchiamoCI() {
     setParticipants([]);
     setScreen("lobby");
   };
+
+  const fetchEventActivities = async (id = eventId) => {
+    if (!id) return [];
+    const { data, error } = await sb
+      .from("responses")
+      .select("activities")
+      .eq("event_id", id);
+    if (error) {
+      showToast("Errore nel caricamento delle attivita");
+      return [];
+    }
+    const counts = {};
+    (data || []).forEach((response) => {
+      safeArray(response.activities).forEach((activity) => {
+        counts[activity] = (counts[activity] || 0) + 1;
+      });
+    });
+    // Add count data to the ACTIVITIES list
+    const activitiesWithCounts = ACTIVITIES.map((activity) =>
+      counts[activity.id]
+        ? { count: counts[activity.id], ...activity }
+        : { count: 0, ...activity },
+    );
+    setEventActivities(activitiesWithCounts);
+  };
+
   const showToast = (message) => {
     setToast(message);
     setToastVisible(true);
@@ -111,6 +138,7 @@ export default function BecchiamoCI() {
     setCurrentUser(null);
     setSelectedDates([]);
     setSelectedActivities([]);
+    setEventActivities([]);
     setSelectedPlaces([]);
     setSelectedTimeslots([]);
     setEventInput("");
@@ -345,6 +373,7 @@ export default function BecchiamoCI() {
             monthInfo={monthInfo}
             selectedDates={selectedDates}
             selectedActivities={selectedActivities}
+            eventActivities={eventActivities}
             selectedPlaces={selectedPlaces}
             selectedTimeslots={selectedTimeslots}
             step={step}
@@ -354,6 +383,7 @@ export default function BecchiamoCI() {
             setSelectedActivities={setSelectedActivities}
             setSelectedPlaces={setSelectedPlaces}
             setSelectedTimeslots={setSelectedTimeslots}
+            fetchEventActivities={fetchEventActivities}
             saveResponse={saveResponse}
           />
         )}
@@ -411,6 +441,7 @@ function FillScreen({
   monthInfo,
   selectedDates,
   selectedActivities,
+  eventActivities,
   selectedPlaces,
   selectedTimeslots,
   step,
@@ -420,8 +451,13 @@ function FillScreen({
   setSelectedActivities,
   setSelectedPlaces,
   setSelectedTimeslots,
+  fetchEventActivities,
   saveResponse,
 }) {
+  useEffect(() => {
+    fetchEventActivities();
+  }, []);
+
   return (
     <div>
       <div className="fill-head">
@@ -463,22 +499,30 @@ function FillScreen({
         <div>
           <h2 className="step-title">Cosa ti va di fare?</h2>
           <p className="sub">Seleziona una o piu attivita</p>
+          <p className="sub">Attivita gia scelte:</p>
           <div className="card">
             <div className="act-grid">
-              {ACTIVITIES.map((activity) => (
-                <div
-                  key={activity.id}
-                  className={`act-item ${selectedActivities.includes(activity.id) ? "sel" : ""}`}
-                  onClick={() =>
-                    setSelectedActivities((items) =>
-                      toggleInArray(items, activity.id),
-                    )
-                  }
-                >
-                  <span className="item-emoji">{activity.emoji}</span>
-                  <span>{activity.label}</span>
-                </div>
-              ))}
+              {eventActivities
+                .sort((a, b) => b.count - a.count)
+                .map((activity) => (
+                  <div
+                    key={activity.id}
+                    className={`act-item ${selectedActivities.includes(activity.id) ? "sel" : ""}`}
+                    onClick={() =>
+                      setSelectedActivities((items) =>
+                        toggleInArray(items, activity.id),
+                      )
+                    }
+                  >
+                    <span className="item-emoji">{activity.emoji}</span>
+                    <span>{activity.label}</span>
+                    {activity.count ? (
+                      <span className="badge" style={{ marginLeft: "auto" }}>
+                        {activity.count}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
             </div>
           </div>
           <button className="btn" onClick={() => setStep(3)}>
