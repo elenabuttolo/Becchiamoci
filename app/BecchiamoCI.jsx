@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./styles/becchiamo.css";
-import { toggleInArray, safeArray } from "./utils/generic";
+import { toggleInArray, safeArray, generateCode } from "./utils/generic";
 import { supabase as sb } from "./lib/supabase";
 import {
   getCurrentMonth,
